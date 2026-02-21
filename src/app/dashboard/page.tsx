@@ -30,12 +30,10 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { 
   Users, 
   BarChart3, 
@@ -43,24 +41,24 @@ import {
   Calendar as CalendarIcon,
   Settings,
   Search,
-  Phone,
-  MapPin,
-  Building2,
-  Wrench,
   MessageCircle,
   Eye,
   Edit,
   Trash2,
   Download,
   Plus,
-  ChevronLeft,
-  ChevronRight,
   Loader2,
   CheckCircle2,
   AlertCircle,
   Clock,
   TrendingUp,
-  DollarSign
+  TrendingDown,
+  DollarSign,
+  MapPin,
+  Wrench,
+  Activity,
+  Sparkles,
+  Phone
 } from 'lucide-react'
 import Header from '@/components/Header'
 import { ThemeProvider } from '@/contexts/ThemeContext'
@@ -151,7 +149,6 @@ function DashboardContent() {
       if (data.success) {
         setVisits(data.data)
         
-        // Calculate stats
         const now = new Date()
         const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
         
@@ -303,11 +300,11 @@ function DashboardContent() {
   // Status colors
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-300'
-      case 'completed': return 'bg-green-100 text-green-800 border-green-300'
-      case 'cancelled': return 'bg-red-100 text-red-800 border-red-300'
-      case 'rescheduled': return 'bg-blue-100 text-blue-800 border-blue-300'
-      default: return 'bg-gray-100 text-gray-800 border-gray-300'
+      case 'pending': return 'status-pending'
+      case 'completed': return 'status-completed'
+      case 'cancelled': return 'status-cancelled'
+      case 'rescheduled': return 'status-rescheduled'
+      default: return 'bg-gray-100 text-gray-800'
     }
   }
 
@@ -323,37 +320,96 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen gradient-bg">
       <Header />
       
       <main className="container mx-auto px-4 py-6 pb-24">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <Card className="stat-card glass-card hover-lift fade-in" style={{ animationDelay: '0.1s' }}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/25">
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats.total}</p>
+                  <p className="text-xs text-muted-foreground">Total Visitors</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="stat-card glass-card hover-lift fade-in" style={{ animationDelay: '0.15s' }}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/25">
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats.pending}</p>
+                  <p className="text-xs text-muted-foreground">Pending</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="stat-card glass-card hover-lift fade-in" style={{ animationDelay: '0.2s' }}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                  <CheckCircle2 className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats.completed}</p>
+                  <p className="text-xs text-muted-foreground">Completed</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="stat-card glass-card hover-lift fade-in" style={{ animationDelay: '0.25s' }}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
+                  <DollarSign className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">Rs.{(stats.totalQuotations / 1000).toFixed(0)}K</p>
+                  <p className="text-xs text-muted-foreground">Quotations</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <Tabs defaultValue="visitors" className="space-y-6">
-          <TabsList className="grid grid-cols-5 w-full max-w-2xl mx-auto bg-green-100 dark:bg-green-900/30">
-            <TabsTrigger value="visitors" className="flex items-center gap-2 data-[state=active]:bg-green-600 data-[state=active]:text-white">
+          <TabsList className="glass-card p-1 w-full max-w-xl mx-auto grid grid-cols-5">
+            <TabsTrigger value="visitors" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">{t('dashboard.visitors')}</span>
             </TabsTrigger>
-            <TabsTrigger value="reports" className="flex items-center gap-2 data-[state=active]:bg-green-600 data-[state=active]:text-white">
+            <TabsTrigger value="reports" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">{t('dashboard.reports')}</span>
             </TabsTrigger>
-            <TabsTrigger value="quotations" className="flex items-center gap-2 data-[state=active]:bg-green-600 data-[state=active]:text-white">
+            <TabsTrigger value="quotations" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white">
               <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">{t('dashboard.quotations')}</span>
             </TabsTrigger>
-            <TabsTrigger value="calendar" className="flex items-center gap-2 data-[state=active]:bg-green-600 data-[state=active]:text-white">
+            <TabsTrigger value="calendar" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white">
               <CalendarIcon className="h-4 w-4" />
               <span className="hidden sm:inline">{t('dashboard.calendar')}</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2 data-[state=active]:bg-green-600 data-[state=active]:text-white">
+            <TabsTrigger value="settings" className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white">
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">{t('dashboard.settings')}</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Visitors Tab */}
-          <TabsContent value="visitors">
-            <Card>
+          <TabsContent value="visitors" className="fade-in">
+            <Card className="glass-card">
               <CardHeader>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
@@ -363,25 +419,25 @@ function DashboardContent() {
                     </CardTitle>
                     <CardDescription>Manage all registered site visits</CardDescription>
                   </div>
-                  <Button onClick={exportToCSV} variant="outline" className="gap-2">
-                    <Download className="h-4 w-4" />
+                  <Button onClick={exportToCSV} className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/25">
+                    <Download className="h-4 w-4 mr-2" />
                     Export CSV
                   </Button>
                 </div>
                 
                 {/* Filters */}
-                <div className="flex flex-col md:flex-row gap-4 mt-4">
+                <div className="flex flex-col md:flex-row gap-3 mt-4">
                   <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Search by name, phone, ID..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 modern-input"
                     />
                   </div>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full md:w-40">
+                    <SelectTrigger className="w-full md:w-36 modern-input">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -389,11 +445,10 @@ function DashboardContent() {
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>
                       <SelectItem value="cancelled">Cancelled</SelectItem>
-                      <SelectItem value="rescheduled">Rescheduled</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select value={districtFilter} onValueChange={setDistrictFilter}>
-                    <SelectTrigger className="w-full md:w-40">
+                    <SelectTrigger className="w-full md:w-36 modern-input">
                       <SelectValue placeholder="District" />
                     </SelectTrigger>
                     <SelectContent>
@@ -407,42 +462,45 @@ function DashboardContent() {
               </CardHeader>
               <CardContent>
                 {loading ? (
-                  <div className="flex justify-center py-8">
+                  <div className="flex justify-center py-12">
                     <Loader2 className="h-8 w-8 animate-spin text-green-600" />
                   </div>
                 ) : visits.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    No visitors found
+                  <div className="text-center py-12">
+                    <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                    <p className="text-muted-foreground">No visitors found</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <div className="rounded-xl border overflow-hidden">
                     <Table>
                       <TableHeader>
-                        <TableRow>
-                          <TableHead>ID</TableHead>
-                          <TableHead>Customer</TableHead>
-                          <TableHead>Phone</TableHead>
-                          <TableHead>District</TableHead>
-                          <TableHead>Service</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Actions</TableHead>
+                        <TableRow className="bg-muted/50">
+                          <TableHead className="font-semibold">ID</TableHead>
+                          <TableHead className="font-semibold">Customer</TableHead>
+                          <TableHead className="font-semibold hidden md:table-cell">Phone</TableHead>
+                          <TableHead className="font-semibold hidden lg:table-cell">District</TableHead>
+                          <TableHead className="font-semibold">Service</TableHead>
+                          <TableHead className="font-semibold">Status</TableHead>
+                          <TableHead className="font-semibold">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {visits.map((visit) => (
-                          <TableRow key={visit.id}>
+                        {visits.map((visit, index) => (
+                          <TableRow key={visit.id} className="hover:bg-green-50/50 dark:hover:bg-green-950/20 transition-colors">
                             <TableCell className="font-mono text-sm">{visit.customerId}</TableCell>
                             <TableCell className="font-medium">{visit.customerName}</TableCell>
-                            <TableCell>{visit.phone}</TableCell>
-                            <TableCell>{visit.district}</TableCell>
-                            <TableCell>{getServiceLabel(visit.serviceType)}</TableCell>
+                            <TableCell className="hidden md:table-cell">{visit.phone}</TableCell>
+                            <TableCell className="hidden lg:table-cell">{visit.district}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="bg-green-50 dark:bg-green-950/50">
+                                {getServiceLabel(visit.serviceType)}
+                              </Badge>
+                            </TableCell>
                             <TableCell>
                               <Badge className={getStatusColor(visit.status)}>
                                 {visit.status}
                               </Badge>
                             </TableCell>
-                            <TableCell>{new Date(visit.createdAt).toLocaleDateString()}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-1">
                                 <Button 
@@ -452,31 +510,33 @@ function DashboardContent() {
                                     setSelectedVisit(visit)
                                     setIsViewDialogOpen(true)
                                   }}
+                                  className="hover:bg-blue-50 dark:hover:bg-blue-950/50"
                                 >
-                                  <Eye className="h-4 w-4" />
+                                  <Eye className="h-4 w-4 text-blue-600" />
                                 </Button>
                                 <Button 
                                   size="sm" 
                                   variant="ghost"
                                   onClick={() => openWhatsApp(visit.phone, visit.customerName)}
-                                  className="text-green-600"
+                                  className="hover:bg-green-50 dark:hover:bg-green-950/50"
                                 >
-                                  <MessageCircle className="h-4 w-4" />
+                                  <MessageCircle className="h-4 w-4 text-green-600" />
                                 </Button>
                                 <Button 
                                   size="sm" 
                                   variant="ghost"
                                   onClick={() => handleEdit(visit)}
+                                  className="hover:bg-amber-50 dark:hover:bg-amber-950/50"
                                 >
-                                  <Edit className="h-4 w-4" />
+                                  <Edit className="h-4 w-4 text-amber-600" />
                                 </Button>
                                 <Button 
                                   size="sm" 
                                   variant="ghost"
                                   onClick={() => handleDelete(visit.id)}
-                                  className="text-red-600"
+                                  className="hover:bg-red-50 dark:hover:bg-red-950/50"
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-4 w-4 text-red-600" />
                                 </Button>
                               </div>
                             </TableCell>
@@ -491,143 +551,109 @@ function DashboardContent() {
           </TabsContent>
 
           {/* Reports Tab */}
-          <TabsContent value="reports">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>Total Visitors</CardDescription>
-                  <CardTitle className="text-3xl text-green-600">{stats.total}</CardTitle>
+          <TabsContent value="reports" className="fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* District Distribution */}
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-green-600" />
+                    District Distribution
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center text-sm text-green-600">
-                    <TrendingUp className="h-4 w-4 mr-1" />
-                    All time registrations
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {districts.slice(0, 9).map(district => {
+                      const count = visits.filter(v => v.district === district).length
+                      const maxCount = Math.max(...districts.map(d => visits.filter(v => v.district === d).length), 1)
+                      const percentage = (count / maxCount) * 100
+                      return (
+                        <div key={district} className="bg-muted/30 rounded-xl p-3 text-center hover:bg-muted/50 transition-colors">
+                          <div className="text-xl font-bold text-green-600">{count}</div>
+                          <div className="text-xs text-muted-foreground">{district}</div>
+                          <div className="w-full bg-muted rounded-full h-1.5 mt-2">
+                            <div 
+                              className="bg-gradient-to-r from-green-500 to-emerald-600 h-1.5 rounded-full transition-all" 
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>Pending</CardDescription>
-                  <CardTitle className="text-3xl text-yellow-600">{stats.pending}</CardTitle>
+
+              {/* Service Type Distribution */}
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Wrench className="h-5 w-5 text-green-600" />
+                    Service Distribution
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center text-sm text-yellow-600">
-                    <Clock className="h-4 w-4 mr-1" />
-                    Awaiting completion
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>Completed</CardDescription>
-                  <CardTitle className="text-3xl text-green-600">{stats.completed}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center text-sm text-green-600">
-                    <CheckCircle2 className="h-4 w-4 mr-1" />
-                    Successfully completed
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>This Month</CardDescription>
-                  <CardTitle className="text-3xl text-blue-600">{stats.thisMonth}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center text-sm text-blue-600">
-                    <CalendarIcon className="h-4 w-4 mr-1" />
-                    New registrations
+                  <div className="space-y-4">
+                    {['ceiling', 'roofing', 'gutter', 'all'].map(service => {
+                      const count = visits.filter(v => v.serviceType === service).length
+                      const percentage = visits.length > 0 ? Math.round((count / visits.length) * 100) : 0
+                      return (
+                        <div key={service} className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium">{getServiceLabel(service)}</span>
+                            <span className="text-muted-foreground">{count} ({percentage}%)</span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div 
+                              className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full transition-all" 
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 </CardContent>
               </Card>
             </div>
-
-            {/* District Distribution */}
-            <Card>
-              <CardHeader>
-                <CardTitle>District Distribution</CardTitle>
-                <CardDescription>Visitors by district</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  {districts.slice(0, 10).map(district => {
-                    const count = visits.filter(v => v.district === district).length
-                    return (
-                      <div key={district} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
-                        <div className="text-2xl font-bold text-green-600">{count}</div>
-                        <div className="text-xs text-gray-500">{district}</div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Service Type Distribution */}
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Service Type Distribution</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {['ceiling', 'roofing', 'gutter', 'all'].map(service => {
-                    const count = visits.filter(v => v.serviceType === service).length
-                    const percentage = visits.length > 0 ? Math.round((count / visits.length) * 100) : 0
-                    return (
-                      <div key={service} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                        <div className="text-2xl font-bold text-green-600">{count}</div>
-                        <div className="text-sm text-gray-500">{getServiceLabel(service)}</div>
-                        <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                          <div 
-                            className="bg-green-600 h-2 rounded-full" 
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           {/* Quotations Tab */}
-          <TabsContent value="quotations">
-            <Card>
+          <TabsContent value="quotations" className="fade-in">
+            <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5 text-green-600" />
                   Quotations Management
                 </CardTitle>
-                <CardDescription>Total Quotation Value: Rs. {stats.totalQuotations.toLocaleString()}</CardDescription>
+                <CardDescription>
+                  Total Value: <span className="font-bold text-green-600">Rs. {stats.totalQuotations.toLocaleString()}</span>
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
+                <div className="rounded-xl border overflow-hidden">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Service</TableHead>
-                        <TableHead>Quotation</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="font-semibold">ID</TableHead>
+                        <TableHead className="font-semibold">Customer</TableHead>
+                        <TableHead className="font-semibold">Service</TableHead>
+                        <TableHead className="font-semibold">Quotation</TableHead>
+                        <TableHead className="font-semibold">Status</TableHead>
+                        <TableHead className="font-semibold">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {visits.map((visit) => (
-                        <TableRow key={visit.id}>
+                        <TableRow key={visit.id} className="hover:bg-green-50/50 dark:hover:bg-green-950/20">
                           <TableCell className="font-mono">{visit.customerId}</TableCell>
-                          <TableCell>{visit.customerName}</TableCell>
+                          <TableCell className="font-medium">{visit.customerName}</TableCell>
                           <TableCell>{getServiceLabel(visit.serviceType)}</TableCell>
-                          <TableCell>
+                          <TableCell className="font-semibold">
                             {visit.quotation ? `Rs. ${visit.quotation.toLocaleString()}` : '-'}
                           </TableCell>
                           <TableCell>
-                            <Badge className={getStatusColor(visit.status)}>
-                              {visit.status}
-                            </Badge>
+                            <Badge className={getStatusColor(visit.status)}>{visit.status}</Badge>
                           </TableCell>
                           <TableCell>
                             <Button
@@ -640,7 +666,7 @@ function DashboardContent() {
                                 })
                                 setIsQuotationDialogOpen(true)
                               }}
-                              className="bg-green-600 hover:bg-green-700"
+                              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                             >
                               <Plus className="h-4 w-4 mr-1" />
                               Quotation
@@ -656,47 +682,48 @@ function DashboardContent() {
           </TabsContent>
 
           {/* Calendar Tab */}
-          <TabsContent value="calendar">
-            <Card>
+          <TabsContent value="calendar" className="fade-in">
+            <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CalendarIcon className="h-5 w-5 text-green-600" />
                   Calendar View
                 </CardTitle>
-                <CardDescription>View scheduled visits by date</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-col md:flex-row gap-6">
-                  <div className="flex-shrink-0">
+                <div className="flex flex-col lg:flex-row gap-6">
+                  <div className="flex-shrink-0 mx-auto">
                     <Calendar
                       mode="single"
                       selected={selectedDate}
                       onSelect={setSelectedDate}
-                      className="rounded-md border"
+                      className="rounded-xl border shadow-lg"
                     />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold mb-4">
+                    <h3 className="font-semibold mb-4 flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-green-600" />
                       Visits on {selectedDate?.toLocaleDateString()}
                     </h3>
                     {calendarVisits.length === 0 ? (
-                      <div className="text-gray-500 py-8 text-center">
-                        No visits scheduled for this date
+                      <div className="text-center py-12 text-muted-foreground">
+                        <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                        <p>No visits scheduled for this date</p>
                       </div>
                     ) : (
                       <div className="space-y-3">
                         {calendarVisits.map(visit => (
-                          <Card key={visit.id} className="p-4">
+                          <Card key={visit.id} className="p-4 hover-lift">
                             <div className="flex items-center justify-between">
                               <div>
                                 <div className="font-medium">{visit.customerName}</div>
-                                <div className="text-sm text-gray-500">{visit.phone}</div>
-                                <div className="text-sm text-gray-500">{visit.address}</div>
+                                <div className="text-sm text-muted-foreground flex items-center gap-2">
+                                  <Phone className="h-3 w-3" />
+                                  {visit.phone}
+                                </div>
                               </div>
                               <div className="flex items-center gap-2">
-                                <Badge className={getStatusColor(visit.status)}>
-                                  {visit.status}
-                                </Badge>
+                                <Badge className={getStatusColor(visit.status)}>{visit.status}</Badge>
                                 <Button
                                   size="sm"
                                   variant="ghost"
@@ -717,8 +744,8 @@ function DashboardContent() {
           </TabsContent>
 
           {/* Settings Tab */}
-          <TabsContent value="settings">
-            <Card>
+          <TabsContent value="settings" className="fade-in">
+            <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Settings className="h-5 w-5 text-green-600" />
@@ -727,57 +754,32 @@ function DashboardContent() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <h3 className="font-semibold mb-2">Application Info</h3>
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
-                    <p><strong>App:</strong> Wedabime Pramukayo Site Visitor Management</p>
-                    <p><strong>Version:</strong> 1.0.0</p>
-                    <p><strong>Developed by:</strong> ZIPCARTCO</p>
-                    <p><strong>Foundation:</strong> Mr. Ranshika Foundation&apos;s IT Company</p>
+                  <h3 className="font-semibold mb-3">Application Info</h3>
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl p-5 space-y-3">
+                    <p className="flex items-center gap-2"><strong>App:</strong> Wedabime Pramukayo Site Visitor Management</p>
+                    <p className="flex items-center gap-2"><strong>Version:</strong> 2.0.0 Modern</p>
+                    <p className="flex items-center gap-2"><strong>Developed by:</strong> <span className="font-bold text-green-600">ZIPCARTCO</span></p>
+                    <p className="flex items-center gap-2"><strong>Foundation:</strong> Mr. Ranshika Foundation&apos;s IT Company</p>
                   </div>
                 </div>
                 
                 <div>
-                  <h3 className="font-semibold mb-2">Features</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                      <CheckCircle2 className="h-5 w-5 text-green-600 mb-2" />
-                      <h4 className="font-medium">Visitor Registration</h4>
-                      <p className="text-sm text-gray-500">Register site visitors with full details</p>
-                    </div>
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                      <CheckCircle2 className="h-5 w-5 text-green-600 mb-2" />
-                      <h4 className="font-medium">WhatsApp Integration</h4>
-                      <p className="text-sm text-gray-500">Quick contact via WhatsApp</p>
-                    </div>
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                      <CheckCircle2 className="h-5 w-5 text-green-600 mb-2" />
-                      <h4 className="font-medium">Reports & Analytics</h4>
-                      <p className="text-sm text-gray-500">View detailed statistics</p>
-                    </div>
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                      <CheckCircle2 className="h-5 w-5 text-green-600 mb-2" />
-                      <h4 className="font-medium">Quotation System</h4>
-                      <p className="text-sm text-gray-500">Manage customer quotations</p>
-                    </div>
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                      <CheckCircle2 className="h-5 w-5 text-green-600 mb-2" />
-                      <h4 className="font-medium">Calendar View</h4>
-                      <p className="text-sm text-gray-500">Schedule and track visits</p>
-                    </div>
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                      <CheckCircle2 className="h-5 w-5 text-green-600 mb-2" />
-                      <h4 className="font-medium">Multi-Language</h4>
-                      <p className="text-sm text-gray-500">English, Sinhala, Tamil support</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold mb-2">Services Offered</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline" className="bg-green-50">Ceiling Insulation</Badge>
-                    <Badge variant="outline" className="bg-green-50">Roofing Insulation</Badge>
-                    <Badge variant="outline" className="bg-green-50">Gutter Insulation</Badge>
+                  <h3 className="font-semibold mb-3">Features</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[
+                      { icon: Users, title: 'Visitor Registration', desc: 'Register site visitors with full details' },
+                      { icon: MessageCircle, title: 'WhatsApp Integration', desc: 'Quick contact via WhatsApp' },
+                      { icon: BarChart3, title: 'Reports & Analytics', desc: 'View detailed statistics' },
+                      { icon: DollarSign, title: 'Quotation System', desc: 'Manage customer quotations' },
+                      { icon: CalendarIcon, title: 'Calendar View', desc: 'Schedule and track visits' },
+                      { icon: Sparkles, title: 'Multi-Language', desc: 'English, Sinhala, Tamil support' },
+                    ].map((feature, i) => (
+                      <div key={i} className="bg-muted/30 rounded-xl p-4 hover:bg-muted/50 transition-colors">
+                        <feature.icon className="h-5 w-5 text-green-600 mb-2" />
+                        <h4 className="font-medium">{feature.title}</h4>
+                        <p className="text-sm text-muted-foreground">{feature.desc}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </CardContent>
@@ -788,56 +790,47 @@ function DashboardContent() {
 
       {/* View Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="glass-card max-w-md">
           <DialogHeader>
-            <DialogTitle>Visitor Details</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-green-600" />
+              Visitor Details
+            </DialogTitle>
           </DialogHeader>
           {selectedVisit && (
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Customer ID:</span>
-                <span className="font-mono">{selectedVisit.customerId}</span>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between py-2 border-b">
+                <span className="text-muted-foreground">Customer ID</span>
+                <span className="font-mono font-medium">{selectedVisit.customerId}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Name:</span>
+              <div className="flex justify-between py-2 border-b">
+                <span className="text-muted-foreground">Name</span>
                 <span className="font-medium">{selectedVisit.customerName}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Phone:</span>
+              <div className="flex justify-between py-2 border-b">
+                <span className="text-muted-foreground">Phone</span>
                 <span>{selectedVisit.phone}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">District:</span>
+              <div className="flex justify-between py-2 border-b">
+                <span className="text-muted-foreground">District</span>
                 <span>{selectedVisit.district}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Service:</span>
+              <div className="flex justify-between py-2 border-b">
+                <span className="text-muted-foreground">Service</span>
                 <span>{getServiceLabel(selectedVisit.serviceType)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Status:</span>
-                <Badge className={getStatusColor(selectedVisit.status)}>
-                  {selectedVisit.status}
-                </Badge>
+              <div className="flex justify-between py-2 border-b">
+                <span className="text-muted-foreground">Status</span>
+                <Badge className={getStatusColor(selectedVisit.status)}>{selectedVisit.status}</Badge>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Address:</span>
-                <span className="text-right">{selectedVisit.address}</span>
+              <div className="flex justify-between py-2 border-b">
+                <span className="text-muted-foreground">Address</span>
+                <span className="text-right max-w-[200px]">{selectedVisit.address}</span>
               </div>
-              {selectedVisit.notes && (
-                <div>
-                  <span className="text-gray-500">Notes:</span>
-                  <p className="mt-1 text-sm bg-gray-50 dark:bg-gray-800 p-2 rounded">
-                    {selectedVisit.notes}
-                  </p>
-                </div>
-              )}
               {selectedVisit.quotation && (
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Quotation:</span>
-                  <span className="font-semibold text-green-600">
-                    Rs. {selectedVisit.quotation.toLocaleString()}
-                  </span>
+                <div className="flex justify-between py-2 border-b">
+                  <span className="text-muted-foreground">Quotation</span>
+                  <span className="font-bold text-green-600">Rs. {selectedVisit.quotation.toLocaleString()}</span>
                 </div>
               )}
             </div>
@@ -845,7 +838,7 @@ function DashboardContent() {
           <DialogFooter>
             <Button
               onClick={() => selectedVisit && openWhatsApp(selectedVisit.phone, selectedVisit.customerName)}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-gradient-to-r from-green-500 to-emerald-600"
             >
               <MessageCircle className="h-4 w-4 mr-2" />
               WhatsApp
@@ -856,131 +849,79 @@ function DashboardContent() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="glass-card max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Visitor</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Customer Name</Label>
-              <Input
-                value={editForm.customerName}
-                onChange={(e) => setEditForm({ ...editForm, customerName: e.target.value })}
-              />
+              <Input value={editForm.customerName} onChange={(e) => setEditForm({ ...editForm, customerName: e.target.value })} className="modern-input" />
             </div>
             <div>
               <Label>Phone</Label>
-              <Input
-                value={editForm.phone}
-                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-              />
+              <Input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} className="modern-input" />
             </div>
             <div>
               <Label>Address</Label>
-              <Textarea
-                value={editForm.address}
-                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-              />
+              <Textarea value={editForm.address} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} className="modern-input" />
             </div>
-            <div>
-              <Label>District</Label>
-              <Select value={editForm.district} onValueChange={(v) => setEditForm({ ...editForm, district: v })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {districts.map(d => (
-                    <SelectItem key={d} value={d}>{d}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Service Type</Label>
-              <Select value={editForm.serviceType} onValueChange={(v) => setEditForm({ ...editForm, serviceType: v })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ceiling">Ceiling Insulation</SelectItem>
-                  <SelectItem value="roofing">Roofing Insulation</SelectItem>
-                  <SelectItem value="gutter">Gutter Insulation</SelectItem>
-                  <SelectItem value="all">All Services</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Status</Label>
-              <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="rescheduled">Rescheduled</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Scheduled Date</Label>
-              <Input
-                type="date"
-                value={editForm.scheduledDate}
-                onChange={(e) => setEditForm({ ...editForm, scheduledDate: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label>Notes</Label>
-              <Textarea
-                value={editForm.notes}
-                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>District</Label>
+                <Select value={editForm.district} onValueChange={(v) => setEditForm({ ...editForm, district: v })}>
+                  <SelectTrigger className="modern-input"><SelectValue /></SelectTrigger>
+                  <SelectContent>{districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Status</Label>
+                <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
+                  <SelectTrigger className="modern-input"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveEdit} className="bg-green-600 hover:bg-green-700">Save</Button>
+            <Button onClick={handleSaveEdit} className="bg-gradient-to-r from-green-500 to-emerald-600">Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Quotation Dialog */}
       <Dialog open={isQuotationDialogOpen} onOpenChange={setIsQuotationDialogOpen}>
-        <DialogContent>
+        <DialogContent className="glass-card">
           <DialogHeader>
             <DialogTitle>Add Quotation</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Quotation Amount (Rs.)</Label>
-              <Input
-                type="number"
-                value={quotationForm.quotation}
-                onChange={(e) => setQuotationForm({ ...quotationForm, quotation: e.target.value })}
-                placeholder="Enter amount"
-              />
+              <Input type="number" value={quotationForm.quotation} onChange={(e) => setQuotationForm({ ...quotationForm, quotation: e.target.value })} className="modern-input" placeholder="Enter amount" />
             </div>
             <div>
               <Label>Notes</Label>
-              <Textarea
-                value={quotationForm.quotationNote}
-                onChange={(e) => setQuotationForm({ ...quotationForm, quotationNote: e.target.value })}
-                placeholder="Additional notes..."
-              />
+              <Textarea value={quotationForm.quotationNote} onChange={(e) => setQuotationForm({ ...quotationForm, quotationNote: e.target.value })} className="modern-input" placeholder="Additional notes..." />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsQuotationDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleAddQuotation} className="bg-green-600 hover:bg-green-700">Save Quotation</Button>
+            <Button onClick={handleAddQuotation} className="bg-gradient-to-r from-green-500 to-emerald-600">Save Quotation</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t py-3 text-center text-sm text-gray-500">
-        Developed by <span className="font-semibold text-green-600">ZIPCARTCO</span> - Mr. Ranshika Foundation&apos;s IT Company
+      <footer className="fixed bottom-0 left-0 right-0 glass-card border-t py-3 text-center text-sm">
+        <span className="text-muted-foreground">Developed by</span>{' '}
+        <span className="font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">ZIPCARTCO</span>
+        {' '}<span className="text-muted-foreground">- Mr. Ranshika Foundation&apos;s IT Company</span>
       </footer>
     </div>
   )

@@ -11,7 +11,9 @@ import {
   Sun, 
   Moon, 
   Languages,
-  Phone
+  Phone,
+  Menu,
+  X
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -19,111 +21,161 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useState } from 'react'
 
 export default function Header() {
   const pathname = usePathname()
   const { language, setLanguage, t } = useLanguage()
   const { theme, toggleTheme } = useTheme()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const languages = [
-    { code: 'en', label: 'English' },
-    { code: 'si', label: 'සිංහල' },
-    { code: 'ta', label: 'தமிழ்' }
+    { code: 'en', label: 'English', flag: '🇬🇧' },
+    { code: 'si', label: 'සිංහල', flag: '🇱🇰' },
+    { code: 'ta', label: 'தமிழ்', flag: '🇱🇰' }
   ] as const
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-green-600 text-white shadow-lg">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo & Brand */}
-        <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 backdrop-blur">
-            <Phone className="h-5 w-5 text-white" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-lg font-bold leading-tight">{t('app.title')}</span>
-            <span className="text-xs text-green-100">{t('app.subtitle')}</span>
-          </div>
-        </Link>
-
-        {/* Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
-          <Link href="/">
-            <Button 
-              variant={pathname === '/' ? 'secondary' : 'ghost'} 
-              size="sm"
-              className={`gap-2 ${pathname === '/' ? 'bg-white text-green-700 hover:bg-white/90' : 'text-white hover:bg-white/20'}`}
-            >
-              <Home className="h-4 w-4" />
-              {t('nav.home')}
-            </Button>
+    <header className="sticky top-0 z-50 w-full">
+      {/* Gradient top border */}
+      <div className="h-1 animated-gradient" />
+      
+      {/* Glassmorphism header */}
+      <div className="glass-card border-b border-white/20">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+          {/* Logo & Brand */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative">
+              <div className="absolute inset-0 bg-green-500/30 rounded-xl blur-lg group-hover:bg-green-500/50 transition-all duration-300" />
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg group-hover:shadow-green-500/25 transition-all duration-300">
+                <Phone className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                {t('app.title')}
+              </span>
+              <span className="text-xs text-muted-foreground hidden sm:block">
+                {t('app.subtitle')}
+              </span>
+            </div>
           </Link>
-          <Link href="/dashboard">
-            <Button 
-              variant={pathname === '/dashboard' ? 'secondary' : 'ghost'} 
-              size="sm"
-              className={`gap-2 ${pathname === '/dashboard' ? 'bg-white text-green-700 hover:bg-white/90' : 'text-white hover:bg-white/20'}`}
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              {t('nav.dashboard')}
-            </Button>
-          </Link>
-        </nav>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          {/* Language Selector */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-2 text-white hover:bg-white/20">
-                <Languages className="h-4 w-4" />
-                <span className="hidden sm:inline">{languages.find(l => l.code === language)?.label}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {languages.map((lang) => (
-                <DropdownMenuItem 
-                  key={lang.code}
-                  onClick={() => setLanguage(lang.code)}
-                  className={language === lang.code ? 'bg-green-50 text-green-700' : ''}
-                >
-                  {lang.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Theme Toggle */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={toggleTheme}
-            className="text-white hover:bg-white/20"
-          >
-            {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-          </Button>
-
-          {/* Mobile Navigation */}
-          <div className="flex md:hidden gap-1">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-1">
             <Link href="/">
               <Button 
-                variant="ghost" 
+                variant={pathname === '/' ? 'default' : 'ghost'} 
                 size="sm"
-                className={pathname === '/' ? 'bg-white/20' : 'text-white'}
+                className={`gap-2 transition-all duration-200 ${
+                  pathname === '/' 
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/25' 
+                    : 'hover:bg-green-50 dark:hover:bg-green-950/50'
+                }`}
               >
                 <Home className="h-4 w-4" />
+                {t('nav.home')}
               </Button>
             </Link>
             <Link href="/dashboard">
               <Button 
-                variant="ghost" 
+                variant={pathname === '/dashboard' ? 'default' : 'ghost'} 
                 size="sm"
-                className={pathname === '/dashboard' ? 'bg-white/20' : 'text-white'}
+                className={`gap-2 transition-all duration-200 ${
+                  pathname === '/dashboard' 
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/25' 
+                    : 'hover:bg-green-50 dark:hover:bg-green-950/50'
+                }`}
               >
                 <LayoutDashboard className="h-4 w-4" />
+                {t('nav.dashboard')}
               </Button>
             </Link>
+          </nav>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            {/* Language Selector */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2 hover:bg-green-50 dark:hover:bg-green-950/50">
+                  <Languages className="h-4 w-4" />
+                  <span className="hidden sm:inline">{languages.find(l => l.code === language)?.flag}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                {languages.map((lang) => (
+                  <DropdownMenuItem 
+                    key={lang.code}
+                    onClick={() => setLanguage(lang.code)}
+                    className={`cursor-pointer ${language === lang.code ? 'bg-green-50 text-green-700 dark:bg-green-950/50 dark:text-green-400' : ''}`}
+                  >
+                    <span className="mr-2">{lang.flag}</span>
+                    {lang.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Theme Toggle */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={toggleTheme}
+              className="hover:bg-green-50 dark:hover:bg-green-950/50"
+            >
+              {theme === 'light' ? (
+                <Moon className="h-4 w-4" />
+              ) : (
+                <Sun className="h-4 w-4 text-yellow-400" />
+              )}
+            </Button>
+
+            {/* Mobile Menu Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
           </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-lg">
+            <nav className="container mx-auto px-4 py-4 flex flex-col gap-2">
+              <Link href="/" onClick={() => setMobileMenuOpen(false)}>
+                <Button 
+                  variant={pathname === '/' ? 'default' : 'ghost'} 
+                  className={`w-full justify-start gap-2 ${
+                    pathname === '/' 
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' 
+                      : ''
+                  }`}
+                >
+                  <Home className="h-4 w-4" />
+                  {t('nav.home')}
+                </Button>
+              </Link>
+              <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                <Button 
+                  variant={pathname === '/dashboard' ? 'default' : 'ghost'} 
+                  className={`w-full justify-start gap-2 ${
+                    pathname === '/dashboard' 
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' 
+                      : ''
+                  }`}
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  {t('nav.dashboard')}
+                </Button>
+              </Link>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   )
