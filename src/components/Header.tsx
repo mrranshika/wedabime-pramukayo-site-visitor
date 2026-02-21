@@ -26,7 +26,7 @@ import { useState } from 'react'
 export default function Header() {
   const pathname = usePathname()
   const { language, setLanguage, t } = useLanguage()
-  const { theme, toggleTheme } = useTheme()
+  const { theme, toggleTheme, mounted } = useTheme()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const languages = [
@@ -124,7 +124,9 @@ export default function Header() {
               onClick={toggleTheme}
               className="hover:bg-green-50 dark:hover:bg-green-950/50"
             >
-              {theme === 'light' ? (
+              {!mounted ? (
+                <Moon className="h-4 w-4" />
+              ) : theme === 'light' ? (
                 <Moon className="h-4 w-4" />
               ) : (
                 <Sun className="h-4 w-4 text-yellow-400" />
