@@ -5,10 +5,23 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// ============================================
+// FOR LOCAL DEVELOPMENT (SQLite):
+// ============================================
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+// ============================================
+// FOR VERCEL DEPLOYMENT (PostgreSQL):
+// Uncomment below and comment out SQLite section
+// ============================================
+// datasource db {
+//   provider  = "postgresql"
+//   url       = env("DATABASE_URL")
+//   directUrl = env("DIRECT_URL")
+// }
 
 model SiteVisit {
   id            String   @id @default(cuid())
