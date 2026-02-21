@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     if (search) {
       where.OR = [
         { customerName: { contains: search, mode: 'insensitive' } },
-        { phone: { contains: search } },
+        { phoneNumber: { contains: search } },
         { customerId: { contains: search, mode: 'insensitive' } },
         { address: { contains: search, mode: 'insensitive' } }
       ]
@@ -52,33 +52,69 @@ export async function POST(request: NextRequest) {
     const visit = await db.siteVisit.create({
       data: {
         customerId: body.customerId,
+        leadReceivedDate: new Date(body.leadReceivedDate),
         customerName: body.customerName,
-        phone: body.phone,
-        address: body.address,
+        phoneNumber: body.phoneNumber,
+        phoneHasWhatsApp: body.phoneHasWhatsApp || false,
+        hasWhatsAppNumber: body.hasWhatsAppNumber,
+        whatsappNumber: body.whatsappNumber || null,
         district: body.district,
+        city: body.city,
+        address: body.address || null,
+        googleMapsLink: body.googleMapsLink || null,
+        latitude: body.latitude || null,
+        longitude: body.longitude || null,
+        drawings: body.drawings || null,
+        images: body.images || null,
+        videos: body.videos || null,
+        hasRemovals: body.hasRemovals || false,
+        removalCharge: body.removalCharge || null,
+        hasAdditionalLabour: body.hasAdditionalLabour || false,
+        additionalLabourCharge: body.additionalLabourCharge || null,
         serviceType: body.serviceType,
-        notes: body.notes || null,
-        scheduledDate: body.scheduledDate ? new Date(body.scheduledDate) : null,
-        status: 'pending'
+        ceilingDetails: body.ceilingDetails || null,
+        guttersDetails: body.guttersDetails || null,
+        roofDetails: body.roofDetails || null,
+        quotationNumber: body.quotationNumber || null,
+        quotationPdf: body.quotationPdf || null,
+        totalAmount: body.totalAmount || null,
+        status: body.status || 'pending',
+        notes: body.notes || null
       }
     })
 
     // Send to Google Sheets (if configured)
     if (process.env.GOOGLE_SHEETS_WEBHOOK_URL) {
       try {
+        const ceilingData = body.ceilingDetails ? JSON.parse(body.ceilingDetails) : null
+        const guttersData = body.guttersDetails ? JSON.parse(body.guttersDetails) : null
+        const roofData = body.roofDetails ? JSON.parse(body.roofDetails) : null
+
         await fetch(process.env.GOOGLE_SHEETS_WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             customerId: visit.customerId,
+            leadReceivedDate: visit.leadReceivedDate.toISOString().split('T')[0],
             customerName: visit.customerName,
-            phone: visit.phone,
-            address: visit.address,
+            phoneNumber: visit.phoneNumber,
+            phoneHasWhatsApp: visit.phoneHasWhatsApp ? 'Yes' : 'No',
+            whatsappNumber: visit.whatsappNumber || '',
             district: visit.district,
+            city: visit.city,
+            address: visit.address || '',
+            googleMapsLink: visit.googleMapsLink || '',
             serviceType: visit.serviceType,
-            notes: visit.notes || '',
+            hasRemovals: visit.hasRemovals ? 'Yes' : 'No',
+            removalCharge: visit.removalCharge || 0,
+            hasAdditionalLabour: visit.hasAdditionalLabour ? 'Yes' : 'No',
+            additionalLabourCharge: visit.additionalLabourCharge || 0,
+            ceilingType: ceilingData?.type || '',
+            ceilingTotal: ceilingData?.total?.totalPrice || 0,
+            totalAmount: visit.totalAmount || 0,
+            quotationNumber: visit.quotationNumber || '',
             status: visit.status,
-            visitDate: visit.visitDate.toISOString(),
+            notes: visit.notes || '',
             createdAt: visit.createdAt.toISOString()
           })
         })
@@ -109,17 +145,32 @@ export async function PUT(request: NextRequest) {
       where: { id: body.id },
       data: {
         customerName: body.customerName,
-        phone: body.phone,
-        address: body.address,
+        phoneNumber: body.phoneNumber,
+        phoneHasWhatsApp: body.phoneHasWhatsApp,
+        hasWhatsAppNumber: body.hasWhatsAppNumber,
+        whatsappNumber: body.whatsappNumber,
         district: body.district,
+        city: body.city,
+        address: body.address,
+        googleMapsLink: body.googleMapsLink,
+        latitude: body.latitude,
+        longitude: body.longitude,
+        drawings: body.drawings,
+        images: body.images,
+        videos: body.videos,
+        hasRemovals: body.hasRemovals,
+        removalCharge: body.removalCharge,
+        hasAdditionalLabour: body.hasAdditionalLabour,
+        additionalLabourCharge: body.additionalLabourCharge,
         serviceType: body.serviceType,
-        notes: body.notes,
+        ceilingDetails: body.ceilingDetails,
+        guttersDetails: body.guttersDetails,
+        roofDetails: body.roofDetails,
+        quotationNumber: body.quotationNumber,
+        quotationPdf: body.quotationPdf,
+        totalAmount: body.totalAmount,
         status: body.status,
-        scheduledDate: body.scheduledDate ? new Date(body.scheduledDate) : null,
-        quotation: body.quotation,
-        quotationDate: body.quotationDate ? new Date(body.quotationDate) : null,
-        quotationNote: body.quotationNote,
-        photos: body.photos,
+        notes: body.notes,
         updatedAt: new Date()
       }
     })

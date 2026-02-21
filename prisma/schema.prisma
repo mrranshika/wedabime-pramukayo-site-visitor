@@ -5,36 +5,69 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// PostgreSQL for Vercel Deployment
 datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model SiteVisit {
-  id            String   @id @default(cuid())
-  customerId    String   @unique
-  customerName  String
-  phone         String
-  address       String
-  district      String
-  serviceType   String
-  visitDate     DateTime @default(now())
-  scheduledDate DateTime?
-  status        String   @default("pending") // pending, completed, cancelled, rescheduled
-  notes         String?
-  photos        String?  // JSON array of photo URLs
-  quotation     Float?
-  quotationDate DateTime?
-  quotationNote String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String   @id @default(cuid())
+  customerId      String   @unique
+  leadReceivedDate DateTime
+  customerName    String
+  
+  // Phone & WhatsApp
+  phoneNumber     String
+  phoneHasWhatsApp Boolean @default(false)
+  hasWhatsAppNumber Boolean? // Yes/No for separate WhatsApp
+  whatsappNumber  String?
+  
+  // Location
+  district        String
+  city            String
+  address         String?
+  googleMapsLink  String?
+  latitude        Float?
+  longitude       Float?
+  
+  // Media
+  drawings        String?  // JSON array of drawing URLs (max 20)
+  images          String?  // JSON array of image URLs (max 20)
+  videos          String?  // JSON array of video URLs (max 2)
+  
+  // Charges
+  hasRemovals     Boolean  @default(false)
+  removalCharge   Float?
+  hasAdditionalLabour Boolean @default(false)
+  additionalLabourCharge Float?
+  
+  // Service Type: "ceiling", "gutters", "roof"
+  serviceType     String
+  
+  // Ceiling Details (JSON)
+  ceilingDetails  String?
+  
+  // Gutters Details (JSON)
+  guttersDetails  String?
+  
+  // Roof Details (JSON)
+  roofDetails     String?
+  
+  // Quotation
+  quotationNumber String?
+  quotationPdf    String?  // PDF URL
+  totalAmount     Float?
+  
+  // Status
+  status          String   @default("pending") // pending, running, complete, cancel
+  
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([customerId])
-  @@index([phone])
+  @@index([phoneNumber])
   @@index([district])
   @@index([status])
-  @@index([visitDate])
-  @@index([scheduledDate])
+  @@index([leadReceivedDate])
 }

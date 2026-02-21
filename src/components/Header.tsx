@@ -38,25 +38,25 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full">
       {/* Gradient top border */}
-      <div className="h-1 animated-gradient" />
+      <div className="h-1 bg-gradient-to-r from-green-500 via-blue-500 to-green-500" />
       
-      {/* Glassmorphism header */}
-      <div className="glass-card border-b border-white/20">
+      {/* Header */}
+      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-green-100 dark:border-green-900">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           {/* Logo & Brand */}
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative">
-              <div className="absolute inset-0 bg-green-500/30 rounded-xl blur-lg group-hover:bg-green-500/50 transition-all duration-300" />
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg group-hover:shadow-green-500/25 transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-blue-500 text-white shadow-lg">
                 <Phone className="h-5 w-5" />
               </div>
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              <span className="text-lg font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
                 {t('app.title')}
               </span>
               <span className="text-xs text-muted-foreground hidden sm:block">
-                {t('app.subtitle')}
+                Site Visitor App
               </span>
             </div>
           </Link>
@@ -67,9 +67,9 @@ export default function Header() {
               <Button 
                 variant={pathname === '/' ? 'default' : 'ghost'} 
                 size="sm"
-                className={`gap-2 transition-all duration-200 ${
+                className={`gap-2 ${
                   pathname === '/' 
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/25' 
+                    ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600' 
                     : 'hover:bg-green-50 dark:hover:bg-green-950/50'
                 }`}
               >
@@ -81,9 +81,9 @@ export default function Header() {
               <Button 
                 variant={pathname === '/dashboard' ? 'default' : 'ghost'} 
                 size="sm"
-                className={`gap-2 transition-all duration-200 ${
+                className={`gap-2 ${
                   pathname === '/dashboard' 
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/25' 
+                    ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600' 
                     : 'hover:bg-green-50 dark:hover:bg-green-950/50'
                 }`}
               >
@@ -108,7 +108,7 @@ export default function Header() {
                   <DropdownMenuItem 
                     key={lang.code}
                     onClick={() => setLanguage(lang.code)}
-                    className={`cursor-pointer ${language === lang.code ? 'bg-green-50 text-green-700 dark:bg-green-950/50 dark:text-green-400' : ''}`}
+                    className={`cursor-pointer ${language === lang.code ? 'bg-gradient-to-r from-green-50 to-blue-50 text-green-700' : ''}`}
                   >
                     <span className="mr-2">{lang.flag}</span>
                     {lang.label}
@@ -147,14 +147,14 @@ export default function Header() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-lg">
+          <div className="md:hidden border-t border-green-100 dark:border-green-900 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg">
             <nav className="container mx-auto px-4 py-4 flex flex-col gap-2">
               <Link href="/" onClick={() => setMobileMenuOpen(false)}>
                 <Button 
                   variant={pathname === '/' ? 'default' : 'ghost'} 
                   className={`w-full justify-start gap-2 ${
                     pathname === '/' 
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' 
+                      ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white' 
                       : ''
                   }`}
                 >
@@ -167,7 +167,7 @@ export default function Header() {
                   variant={pathname === '/dashboard' ? 'default' : 'ghost'} 
                   className={`w-full justify-start gap-2 ${
                     pathname === '/dashboard' 
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' 
+                      ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white' 
                       : ''
                   }`}
                 >
