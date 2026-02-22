@@ -21,13 +21,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
+
+// Empty subscribe function for SSR compatibility
+const emptySubscribe = () => () => {}
 
 export default function Header() {
   const pathname = usePathname()
   const { language, setLanguage, t } = useLanguage()
   const { theme, toggleTheme, mounted } = useTheme()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  
+  // Use useSyncExternalStore for SSR-safe client detection
+  const clientMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  )
 
   const languages = [
     { code: 'en', label: 'English', flag: '🇬🇧' },
@@ -95,27 +105,34 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            {/* Language Selector */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2 hover:bg-green-50 dark:hover:bg-green-950/50">
-                  <Languages className="h-4 w-4" />
-                  <span className="hidden sm:inline">{languages.find(l => l.code === language)?.flag}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                {languages.map((lang) => (
-                  <DropdownMenuItem 
-                    key={lang.code}
-                    onClick={() => setLanguage(lang.code)}
-                    className={`cursor-pointer ${language === lang.code ? 'bg-gradient-to-r from-green-50 to-blue-50 text-green-700' : ''}`}
-                  >
-                    <span className="mr-2">{lang.flag}</span>
-                    {lang.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Language Selector - Only render on client to avoid hydration mismatch */}
+            {clientMounted ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-2 hover:bg-green-50 dark:hover:bg-green-950/50">
+                    <Languages className="h-4 w-4" />
+                    <span className="hidden sm:inline">{languages.find(l => l.code === language)?.flag}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  {languages.map((lang) => (
+                    <DropdownMenuItem 
+                      key={lang.code}
+                      onClick={() => setLanguage(lang.code)}
+                      className={`cursor-pointer ${language === lang.code ? 'bg-gradient-to-r from-green-50 to-blue-50 text-green-700' : ''}`}
+                    >
+                      <span className="mr-2">{lang.flag}</span>
+                      {lang.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Languages className="h-4 w-4" />
+                <span className="hidden sm:inline">🌐</span>
+              </Button>
+            )}
 
             {/* Theme Toggle */}
             <Button 
