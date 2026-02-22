@@ -44,6 +44,21 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Helper function to convert string to boolean
+function parseBoolean(value: unknown): boolean | null {
+  if (value === true || value === 'true' || value === 'yes' || value === 1) return true
+  if (value === false || value === 'false' || value === 'no' || value === 0) return false
+  if (value === '' || value === null || value === undefined) return null
+  return Boolean(value)
+}
+
+// Helper function to parse number or return null
+function parseNumber(value: unknown): number | null {
+  if (value === '' || value === null || value === undefined) return null
+  const num = parseFloat(String(value))
+  return isNaN(num) ? null : num
+}
+
 // POST - Create new site visit
 export async function POST(request: NextRequest) {
   try {
@@ -55,29 +70,29 @@ export async function POST(request: NextRequest) {
         leadReceivedDate: new Date(body.leadReceivedDate),
         customerName: body.customerName,
         phoneNumber: body.phoneNumber,
-        phoneHasWhatsApp: body.phoneHasWhatsApp || false,
-        hasWhatsAppNumber: body.hasWhatsAppNumber,
+        phoneHasWhatsApp: Boolean(body.phoneHasWhatsApp),
+        hasWhatsAppNumber: parseBoolean(body.hasWhatsAppNumber),
         whatsappNumber: body.whatsappNumber || null,
         district: body.district,
         city: body.city,
         address: body.address || null,
         googleMapsLink: body.googleMapsLink || null,
-        latitude: body.latitude || null,
-        longitude: body.longitude || null,
+        latitude: parseNumber(body.latitude),
+        longitude: parseNumber(body.longitude),
         drawings: body.drawings || null,
         images: body.images || null,
         videos: body.videos || null,
-        hasRemovals: body.hasRemovals || false,
-        removalCharge: body.removalCharge || null,
-        hasAdditionalLabour: body.hasAdditionalLabour || false,
-        additionalLabourCharge: body.additionalLabourCharge || null,
+        hasRemovals: Boolean(body.hasRemovals),
+        removalCharge: parseNumber(body.removalCharge),
+        hasAdditionalLabour: Boolean(body.hasAdditionalLabour),
+        additionalLabourCharge: parseNumber(body.additionalLabourCharge),
         serviceType: body.serviceType,
         ceilingDetails: body.ceilingDetails || null,
         guttersDetails: body.guttersDetails || null,
         roofDetails: body.roofDetails || null,
         quotationNumber: body.quotationNumber || null,
         quotationPdf: body.quotationPdf || null,
-        totalAmount: body.totalAmount || null,
+        totalAmount: parseNumber(body.totalAmount),
         status: body.status || 'pending',
         notes: body.notes || null
       }
@@ -92,7 +107,7 @@ export async function POST(request: NextRequest) {
           customerName: visit.customerName,
           phoneNumber: visit.phoneNumber,
           phoneHasWhatsApp: visit.phoneHasWhatsApp ? 'Yes' : 'No',
-          hasWhatsAppNumber: visit.hasWhatsAppNumber || '',
+          hasWhatsAppNumber: visit.hasWhatsAppNumber !== null ? (visit.hasWhatsAppNumber ? 'Yes' : 'No') : '',
           whatsappNumber: visit.whatsappNumber || '',
           district: visit.district,
           city: visit.city,
@@ -120,11 +135,16 @@ export async function POST(request: NextRequest) {
           updatedAt: new Date().toISOString()
         }
 
+        console.log('Sending to Google Sheets:', process.env.GOOGLE_SHEETS_WEBHOOK_URL)
+        
         const response = await fetch(process.env.GOOGLE_SHEETS_WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(sheetsData)
         })
+        
+        const result = await response.text()
+        console.log('Google Sheets response:', response.status, result)
         
         if (!response.ok) {
           console.error('Google Sheets sync failed: HTTP', response.status)
@@ -158,32 +178,31 @@ export async function PUT(request: NextRequest) {
       data: {
         customerName: body.customerName,
         phoneNumber: body.phoneNumber,
-        phoneHasWhatsApp: body.phoneHasWhatsApp,
-        hasWhatsAppNumber: body.hasWhatsAppNumber,
-        whatsappNumber: body.whatsappNumber,
+        phoneHasWhatsApp: Boolean(body.phoneHasWhatsApp),
+        hasWhatsAppNumber: parseBoolean(body.hasWhatsAppNumber),
+        whatsappNumber: body.whatsappNumber || null,
         district: body.district,
         city: body.city,
-        address: body.address,
-        googleMapsLink: body.googleMapsLink,
-        latitude: body.latitude,
-        longitude: body.longitude,
-        drawings: body.drawings,
-        images: body.images,
-        videos: body.videos,
-        hasRemovals: body.hasRemovals,
-        removalCharge: body.removalCharge,
-        hasAdditionalLabour: body.hasAdditionalLabour,
-        additionalLabourCharge: body.additionalLabourCharge,
+        address: body.address || null,
+        googleMapsLink: body.googleMapsLink || null,
+        latitude: parseNumber(body.latitude),
+        longitude: parseNumber(body.longitude),
+        drawings: body.drawings || null,
+        images: body.images || null,
+        videos: body.videos || null,
+        hasRemovals: Boolean(body.hasRemovals),
+        removalCharge: parseNumber(body.removalCharge),
+        hasAdditionalLabour: Boolean(body.hasAdditionalLabour),
+        additionalLabourCharge: parseNumber(body.additionalLabourCharge),
         serviceType: body.serviceType,
-        ceilingDetails: body.ceilingDetails,
-        guttersDetails: body.guttersDetails,
-        roofDetails: body.roofDetails,
-        quotationNumber: body.quotationNumber,
-        quotationPdf: body.quotationPdf,
-        totalAmount: body.totalAmount,
-        status: body.status,
-        notes: body.notes,
-        updatedAt: new Date()
+        ceilingDetails: body.ceilingDetails || null,
+        guttersDetails: body.guttersDetails || null,
+        roofDetails: body.roofDetails || null,
+        quotationNumber: body.quotationNumber || null,
+        quotationPdf: body.quotationPdf || null,
+        totalAmount: parseNumber(body.totalAmount),
+        status: body.status || 'pending',
+        notes: body.notes || null
       }
     })
 
