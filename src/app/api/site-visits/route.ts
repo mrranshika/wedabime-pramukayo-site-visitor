@@ -220,20 +220,42 @@ export async function POST(request: NextRequest) {
 
         console.log('Sending to Google Sheets:', process.env.GOOGLE_SHEETS_WEBHOOK_URL)
         
-        const response = await fetch(process.env.GOOGLE_SHEETS_WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(sheetsData)
-        })
+        // Method 1: Try POST with JSON body
+        try {
+          const response = await fetch(process.env.GOOGLE_SHEETS_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sheetsData),
+            redirect: 'follow'
+          })
+          
+          const result = await response.text()
+          console.log('Google Sheets POST response:', response.status, result.substring(0, 200))
+          
+          if (result.includes('success')) {
+            sheetsSynced = true
+            console.log('✅ Synced to Google Sheets via POST')
+          }
+        } catch (postError) {
+          console.error('POST failed:', postError)
+        }
         
-        const result = await response.text()
-        console.log('Google Sheets response:', response.status, result)
-        
-        if (response.ok) {
-          sheetsSynced = true
-          console.log('✅ Synced to Google Sheets')
-        } else {
-          console.error('Google Sheets sync failed: HTTP', response.status)
+        // Method 2: If POST didn't work, try GET with data parameter
+        if (!sheetsSynced) {
+          try {
+            const encodedData = encodeURIComponent(JSON.stringify(sheetsData))
+            const getUrl = `${process.env.GOOGLE_SHEETS_WEBHOOK_URL}?data=${encodedData}`
+            const getResponse = await fetch(getUrl, { redirect: 'follow' })
+            const getResult = await getResponse.text()
+            console.log('Google Sheets GET response:', getResponse.status, getResult.substring(0, 200))
+            
+            if (getResult.includes('success')) {
+              sheetsSynced = true
+              console.log('✅ Synced to Google Sheets via GET')
+            }
+          } catch (getError) {
+            console.error('GET failed:', getError)
+          }
         }
       } catch (e) {
         console.error('Google Sheets sync failed:', e)
