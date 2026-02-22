@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
 
 // Generate next customer ID in pattern: A-000a01, A-000a02, ..., Z-999z99, AA-000a01, ...
 function generateNextCustomerId(currentId: string | null): string {
@@ -54,20 +53,48 @@ function incrementPrefix(prefix: string): string {
   return 'A' + chars.join('')
 }
 
+// In-memory counter for when database is not available
+let memoryCounter = 0
+
 export async function GET() {
   try {
-    // Get the latest customer ID
-    const latestVisit = await db.siteVisit.findFirst({
-      orderBy: { createdAt: 'desc' },
-      select: { customerId: true }
-    })
+    // Try to use database first
+    try {
+      const { db } = await import('@/lib/db')
+      
+      // Check if database and table are available
+      const latestVisit = await db.siteVisit.findFirst({
+        orderBy: { createdAt: 'desc' },
+        select: { customerId: true }
+      })
 
-    const newId = generateNextCustomerId(latestVisit?.customerId || null)
+      const newId = generateNextCustomerId(latestVisit?.customerId || null)
 
-    return NextResponse.json({ 
-      success: true, 
-      customerId: newId 
-    })
+      return NextResponse.json({ 
+        success: true, 
+        customerId: newId,
+        source: 'database'
+      })
+    } catch (dbError) {
+      // Database not available, use memory counter
+      console.log('Database not available, using memory counter')
+      memoryCounter++
+      
+      // Generate ID based on memory counter
+      const prefix = 'A'
+      const num = Math.floor(memoryCounter / 2599) // 26 * 99 + 1
+      const letterCode = Math.floor((memoryCounter % 2599) / 99)
+      const suffix = (memoryCounter % 99) + 1
+      
+      const letter = String.fromCharCode(97 + (letterCode % 26)) // a-z
+      const newId = `${prefix}-${String(num).padStart(3, '0')}${letter}${String(suffix).padStart(2, '0')}`
+
+      return NextResponse.json({ 
+        success: true, 
+        customerId: newId,
+        source: 'memory'
+      })
+    }
   } catch (error) {
     console.error('Error generating customer ID:', error)
     return NextResponse.json({ 
