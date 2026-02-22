@@ -42,17 +42,29 @@ export async function GET() {
         "updatedAt" TIMESTAMP(3) NOT NULL,
         CONSTRAINT "SiteVisit_pkey" PRIMARY KEY ("id"),
         CONSTRAINT "SiteVisit_customerId_key" UNIQUE ("customerId")
-      );
+      )
     `)
     
-    // Create indexes
-    await db.$executeRawUnsafe(`
-      CREATE INDEX IF NOT EXISTS "SiteVisit_customerId_idx" ON "SiteVisit"("customerId");
-      CREATE INDEX IF NOT EXISTS "SiteVisit_phoneNumber_idx" ON "SiteVisit"("phoneNumber");
-      CREATE INDEX IF NOT EXISTS "SiteVisit_district_idx" ON "SiteVisit"("district");
-      CREATE INDEX IF NOT EXISTS "SiteVisit_status_idx" ON "SiteVisit"("status");
-      CREATE INDEX IF NOT EXISTS "SiteVisit_leadReceivedDate_idx" ON "SiteVisit"("leadReceivedDate");
-    `)
+    // Create indexes separately
+    try {
+      await db.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "SiteVisit_customerId_idx" ON "SiteVisit"("customerId")`)
+    } catch { /* Index might already exist */ }
+    
+    try {
+      await db.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "SiteVisit_phoneNumber_idx" ON "SiteVisit"("phoneNumber")`)
+    } catch { /* Index might already exist */ }
+    
+    try {
+      await db.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "SiteVisit_district_idx" ON "SiteVisit"("district")`)
+    } catch { /* Index might already exist */ }
+    
+    try {
+      await db.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "SiteVisit_status_idx" ON "SiteVisit"("status")`)
+    } catch { /* Index might already exist */ }
+    
+    try {
+      await db.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "SiteVisit_leadReceivedDate_idx" ON "SiteVisit"("leadReceivedDate")`)
+    } catch { /* Index might already exist */ }
     
     return NextResponse.json({ 
       success: true, 
