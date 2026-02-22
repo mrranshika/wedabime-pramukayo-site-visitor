@@ -86,38 +86,49 @@ export async function POST(request: NextRequest) {
     // Send to Google Sheets (if configured)
     if (process.env.GOOGLE_SHEETS_WEBHOOK_URL) {
       try {
-        const ceilingData = body.ceilingDetails ? JSON.parse(body.ceilingDetails) : null
-        const guttersData = body.guttersDetails ? JSON.parse(body.guttersDetails) : null
-        const roofData = body.roofDetails ? JSON.parse(body.roofDetails) : null
+        const sheetsData = {
+          customerId: visit.customerId,
+          leadReceivedDate: visit.leadReceivedDate.toISOString().split('T')[0],
+          customerName: visit.customerName,
+          phoneNumber: visit.phoneNumber,
+          phoneHasWhatsApp: visit.phoneHasWhatsApp ? 'Yes' : 'No',
+          hasWhatsAppNumber: visit.hasWhatsAppNumber || '',
+          whatsappNumber: visit.whatsappNumber || '',
+          district: visit.district,
+          city: visit.city,
+          address: visit.address || '',
+          googleMapsLink: visit.googleMapsLink || '',
+          latitude: visit.latitude || '',
+          longitude: visit.longitude || '',
+          drawings: visit.drawings || '',
+          images: visit.images || '',
+          videos: visit.videos || '',
+          hasRemovals: visit.hasRemovals ? 'Yes' : 'No',
+          removalCharge: visit.removalCharge || 0,
+          hasAdditionalLabour: visit.hasAdditionalLabour ? 'Yes' : 'No',
+          additionalLabourCharge: visit.additionalLabourCharge || 0,
+          serviceType: visit.serviceType,
+          ceilingDetails: visit.ceilingDetails || '',
+          guttersDetails: visit.guttersDetails || '',
+          roofDetails: visit.roofDetails || '',
+          quotationNumber: visit.quotationNumber || '',
+          quotationPdf: visit.quotationPdf || '',
+          totalAmount: visit.totalAmount || 0,
+          status: visit.status,
+          notes: visit.notes || '',
+          createdAt: visit.createdAt.toISOString(),
+          updatedAt: new Date().toISOString()
+        }
 
-        await fetch(process.env.GOOGLE_SHEETS_WEBHOOK_URL, {
+        const response = await fetch(process.env.GOOGLE_SHEETS_WEBHOOK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customerId: visit.customerId,
-            leadReceivedDate: visit.leadReceivedDate.toISOString().split('T')[0],
-            customerName: visit.customerName,
-            phoneNumber: visit.phoneNumber,
-            phoneHasWhatsApp: visit.phoneHasWhatsApp ? 'Yes' : 'No',
-            whatsappNumber: visit.whatsappNumber || '',
-            district: visit.district,
-            city: visit.city,
-            address: visit.address || '',
-            googleMapsLink: visit.googleMapsLink || '',
-            serviceType: visit.serviceType,
-            hasRemovals: visit.hasRemovals ? 'Yes' : 'No',
-            removalCharge: visit.removalCharge || 0,
-            hasAdditionalLabour: visit.hasAdditionalLabour ? 'Yes' : 'No',
-            additionalLabourCharge: visit.additionalLabourCharge || 0,
-            ceilingType: ceilingData?.type || '',
-            ceilingTotal: ceilingData?.total?.totalPrice || 0,
-            totalAmount: visit.totalAmount || 0,
-            quotationNumber: visit.quotationNumber || '',
-            status: visit.status,
-            notes: visit.notes || '',
-            createdAt: visit.createdAt.toISOString()
-          })
+          body: JSON.stringify(sheetsData)
         })
+        
+        if (!response.ok) {
+          console.error('Google Sheets sync failed: HTTP', response.status)
+        }
       } catch (e) {
         console.error('Google Sheets sync failed:', e)
       }
@@ -131,7 +142,8 @@ export async function POST(request: NextRequest) {
     console.error('Error creating site visit:', error)
     return NextResponse.json({ 
       success: false, 
-      error: 'Failed to create site visit' 
+      error: 'Failed to create site visit',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 }

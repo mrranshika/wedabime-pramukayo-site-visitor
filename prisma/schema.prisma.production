@@ -1,0 +1,74 @@
+// This is your Prisma schema file for VERCEL PRODUCTION
+// Use this schema when deploying to Vercel with PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl  = env("POSTGRES_URL_NON_POOLING")
+}
+
+model SiteVisit {
+  id              String   @id @default(cuid())
+  customerId      String   @unique
+  leadReceivedDate DateTime
+  customerName    String
+  
+  // Phone & WhatsApp
+  phoneNumber     String
+  phoneHasWhatsApp Boolean @default(false)
+  hasWhatsAppNumber String?
+  whatsappNumber  String?
+  
+  // Location
+  district        String
+  city            String
+  address         String?
+  googleMapsLink  String?
+  latitude        Float?
+  longitude       Float?
+  
+  // Media
+  drawings        String?  // JSON array of drawing URLs (max 20)
+  images          String?  // JSON array of image URLs (max 20)
+  videos          String?  // JSON array of video URLs (max 2)
+  
+  // Charges
+  hasRemovals     Boolean  @default(false)
+  removalCharge   Float?
+  hasAdditionalLabour Boolean @default(false)
+  additionalLabourCharge Float?
+  
+  // Service Type: "ceiling", "gutters", "roof"
+  serviceType     String
+  
+  // Ceiling Details (JSON)
+  ceilingDetails  String?
+  
+  // Gutters Details (JSON)
+  guttersDetails  String?
+  
+  // Roof Details (JSON)
+  roofDetails     String?
+  
+  // Quotation
+  quotationNumber String?
+  quotationPdf    String?  // PDF URL
+  totalAmount     Float?
+  
+  // Status
+  status          String   @default("pending") // pending, running, complete, cancel
+  
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([phoneNumber])
+  @@index([district])
+  @@index([status])
+  @@index([leadReceivedDate])
+}
