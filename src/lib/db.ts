@@ -5,15 +5,9 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  // For Vercel Postgres - use the pooled connection
-  if (process.env.POSTGRES_PRISMA_URL) {
-    return new PrismaClient({
-      datasourceUrl: process.env.POSTGRES_PRISMA_URL,
-      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-    })
-  }
-  
-  // For local SQLite
+  // For Vercel Postgres or local development
+  // DATABASE_URL is set automatically by Vercel for Postgres
+  // For local, it uses SQLite
   return new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   })
