@@ -42,7 +42,12 @@ import {
   Cloud,
   Calculator,
   Paperclip,
-  FileText
+  FileText,
+  Navigation,
+  Crosshair,
+  ExternalLink,
+  Copy,
+  Check
 } from 'lucide-react'
 
 // Sri Lankan Districts and Cities
@@ -168,6 +173,9 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
+  const [copiedLink, setCopiedLink] = useState(false)
 
   // Generate Customer ID
   const generateCustomerId = async () => {
@@ -316,6 +324,74 @@ export default function Home() {
         ...prev,
         ceilingMeasurements: [...prev.ceilingMeasurements, { length: '', width: '' }]
       }))
+    }
+  }
+
+  // Detect current location using Geolocation API
+  const detectLocation = () => {
+    setIsDetectingLocation(true)
+    setLocationError(null)
+
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported by your browser')
+      setIsDetectingLocation(false)
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords
+        const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`
+        
+        setFormData(prev => ({
+          ...prev,
+          latitude,
+          longitude,
+          googleMapsLink: mapsLink
+        }))
+        setIsDetectingLocation(false)
+      },
+      (error) => {
+        let errorMessage = 'Failed to detect location'
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Location permission denied. Please enable location access.'
+            break
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Location information is unavailable.'
+            break
+          case error.TIMEOUT:
+            errorMessage = 'Location request timed out. Please try again.'
+            break
+        }
+        setLocationError(errorMessage)
+        setIsDetectingLocation(false)
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    )
+  }
+
+  // Copy Google Maps link to clipboard
+  const copyToClipboard = async () => {
+    if (formData.googleMapsLink) {
+      try {
+        await navigator.clipboard.writeText(formData.googleMapsLink)
+        setCopiedLink(true)
+        setTimeout(() => setCopiedLink(false), 2000)
+      } catch {
+        console.error('Failed to copy to clipboard')
+      }
+    }
+  }
+
+  // Open Google Maps in new tab
+  const openInGoogleMaps = () => {
+    if (formData.googleMapsLink) {
+      window.open(formData.googleMapsLink, '_blank')
     }
   }
 
@@ -500,6 +576,95 @@ export default function Home() {
             {/* Step 3: Location */}
             {currentStep === 3 && (
               <div className="space-y-4">
+                {/* Location Detector */}
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-800 rounded-full">
+                        <Navigation className="h-5 w-5 text-blue-600 dark:text-blue-300" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-blue-700 dark:text-blue-300">Detect Current Location</h4>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Click to auto-detect your location</p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={detectLocation}
+                      disabled={isDetectingLocation}
+                      className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white gap-2"
+                    >
+                      {isDetectingLocation ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Detecting...
+                        </>
+                      ) : (
+                        <>
+                          <Crosshair className="h-4 w-4" />
+                          Detect Location
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Location Error */}
+                  {locationError && (
+                    <Alert variant="destructive" className="mt-3">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{locationError}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* Detected Location Display */}
+                  {formData.latitude && formData.longitude && (
+                    <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="flex items-center gap-2 text-green-600 dark:text-green-400 mb-2">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span className="font-medium text-sm">Location Detected!</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                        <div>
+                          <span className="text-gray-500">Latitude:</span>
+                          <span className="ml-1 font-mono">{formData.latitude.toFixed(6)}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Longitude:</span>
+                          <span className="ml-1 font-mono">{formData.longitude.toFixed(6)}</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={copyToClipboard}
+                          className="gap-1 text-xs"
+                        >
+                          {copiedLink ? (
+                            <>
+                              <Check className="h-3 w-3 text-green-500" />
+                              Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="h-3 w-3" />
+                              Copy Link
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={openInGoogleMaps}
+                          className="gap-1 text-xs"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Open in Maps
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* District */}
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
@@ -554,19 +719,36 @@ export default function Home() {
                   />
                 </div>
 
-                {/* Google Maps */}
+                {/* Google Maps Link */}
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <Map className="h-4 w-4 text-blue-600" />
                     Google Maps Link
                   </Label>
-                  <Input
-                    value={formData.googleMapsLink}
-                    onChange={(e) => setFormData({ ...formData, googleMapsLink: e.target.value })}
-                    placeholder="Paste Google Maps link"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      value={formData.googleMapsLink}
+                      onChange={(e) => setFormData({ ...formData, googleMapsLink: e.target.value, latitude: null, longitude: null })}
+                      placeholder="Auto-generated or paste manually"
+                      className="flex-1"
+                    />
+                    {formData.googleMapsLink && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={copyToClipboard}
+                        title="Copy link"
+                      >
+                        {copiedLink ? (
+                          <Check className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500">
-                    Open Google Maps, get directions to location, copy and paste the link
+                    📍 Use &quot;Detect Location&quot; above or manually paste a Google Maps link
                   </p>
                 </div>
               </div>
